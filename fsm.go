@@ -25,6 +25,7 @@
 package fsm
 
 import (
+	"database/sql/driver"
 	"strings"
 	"sync"
 )
@@ -203,6 +204,17 @@ func (f *FSM) Current() string {
 	f.stateMu.RLock()
 	defer f.stateMu.RUnlock()
 	return f.current
+}
+
+// Value implements the db value method on FSM
+func (f *FSM) Value() (driver.Value, error) {
+	return f.Current(), nil
+}
+
+// Scan implements the db scan method on FSM
+func (f *FSM) Scan(value interface{}) error {
+	f.SetState(value.(string))
+	return nil
 }
 
 // Is returns true if state is the current state.
