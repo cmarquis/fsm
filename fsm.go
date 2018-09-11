@@ -28,6 +28,8 @@ import (
 	"database/sql/driver"
 	"strings"
 	"sync"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 // transitioner is an interface for the FSM's transition function.
@@ -214,6 +216,23 @@ func (f *FSM) Value() (driver.Value, error) {
 // Scan implements the db scan method on FSM
 func (f *FSM) Scan(value interface{}) error {
 	f.SetState(value.(string))
+	return nil
+}
+
+// GetBSON - implements bson.Getter
+func (f *FSM) GetBSON() (interface{}, error) {
+	return f.Current(), nil
+}
+
+// SetBSON - implements bson.Setter
+func (f *FSM) SetBSON(raw bson.Raw) error {
+	var decoded string
+	err := raw.Unmarshal(&decoded)
+	if err == nil {
+		f.SetState(decoded)
+	} else {
+		return err
+	}
 	return nil
 }
 
